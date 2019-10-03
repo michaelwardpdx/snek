@@ -1,0 +1,97 @@
+#
+# Copyright © 2019 Keith Packard <keithp@keithp.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+
+FREEDOM_METAL = /home/keithp/misc/sifive/src/freedom-e-sdk/freedom-metal/
+FM_SRC = $(FREEDOM_METAL)/src
+FM_DRIVERS = $(FM_SRC)/drivers
+FM_INC = $(FREEDOM_METAL)
+
+SNEK_LOCAL_VPATH = $(SNEK_FE310):$(SNEK_AO):$(FM_SRC):$(FM_DRIVERS)
+
+SNEK_FE310_SRC = \
+	button.c \
+	cache.c \
+	clock.c \
+	cpu.c \
+	gpio.c \
+	interrupt.c \
+	led.c \
+	lock.c \
+	memory.c \
+	pmp.c \
+	privilege.c \
+	rtc.c \
+	shutdown.c \
+	spi.c \
+	switch.c \
+	synchronize_harts.c \
+	time.c \
+	timer.c \
+	trap.S \
+	tty.c \
+	uart.c \
+	watchdog.c \
+	snek-metal.c \
+	snek-math.c \
+	snek-io.c \
+	snek-input.c \
+
+SNEK_FE310_INC = \
+	fe310.h
+
+SNEK_FE310_BUILTINS = \
+	snek-math.builtin \
+	snek-input.builtin
+
+PICOLIBC_PRINTF_CFLAGS =
+
+PICOLIBC_CFLAGS= \
+	-specs=picolibc.specs \
+	$(PICOLIBC_PRINTF_CFLAGS)
+
+OPT=-O0 -g
+
+WARN_FLAGS=-Wall -Wextra -Wcast-align \
+	-Wpointer-arith \
+	-Wstrict-prototypes \
+	-Wmissing-prototypes \
+	-Wmissing-declarations \
+	-Wnested-externs \
+	-Wshadow \
+	-Warray-bounds=2
+
+AO_CFLAGS=\
+	-std=gnu99 $(WARN_FLAGS) $(OPT) -g
+
+FE310_CFLAGS=-march=rv32imac -mabi=ilp32 \
+	-I. -I$(SNEK_FE310) -I$(SNEK_ROOT) -I$(FREEDOM_METAL) $(PICOLIBC_CFLAGS)
+
+CFLAGS = $(FE310_CFLAGS) $(SNEK_CFLAGS) $(AO_CFLAGS)
+
+LDFLAGS=$(CFLAGS) -n
+
+LIBS=-lm
+
+ARCH=riscv64-unknown-elf
+CC=$(ARCH)-gcc
+OBJCOPY=$(ARCH)-objcopy
+
+PROG=$(PROGNAME)-$(SNEK_VERSION).elf
+BIN=$(PROGNAME)-$(SNEK_VERSION).bin
+MAP=$(PROGNAME)-$(SNEK_VERSION).map
+
+.SUFFIXES: .elf .bin
+
+.elf.bin:
+	$(OBJCOPY) -O binary -S $^ $@

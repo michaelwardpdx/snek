@@ -1,0 +1,5 @@
+#!/bin/sh
+qemu=qemu-system-riscv32
+qemu_config=qemu.cfg
+elf=snek-e31-1.1.elf
+$qemu -readconfig $qemu_config -kernel $elf -nographic "$@"
